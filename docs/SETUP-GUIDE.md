@@ -35,6 +35,8 @@ Have ready: the Claude desktop app open on your Mac, your phone with Telegram, a
 
 **Step 2. Deploy Hermes**
 
+If Hostinger asks you to **choose an app**, pick **Hermes Agent Native**: Hermes's own dashboard, the same app the sentiv-ops server runs. Don't pick Hermes Agent WebUI: it adds a separate web chat app that also faces the internet.
+
 hPanel opens a **Hermes Agent configuration** form:
 
 - `ADMIN_USERNAME`: not "admin". `ADMIN_PASSWORD`: 16+ characters, saved in 1Password.
@@ -182,6 +184,7 @@ Every login file on the server follows the same pattern: Claude creates it with 
 | What happened | Do this instead |
 | --- | --- |
 | nexos.ai credits pre-ticked in the cart | Untick before paying |
+| Hostinger asked to choose WebUI or Native | Native; WebUI adds a separate web chat app to secure |
 | Telegram "Automatic" setup goes through Nous's bot | Always Manual + BotFather |
 | Dashboard exposed on a raw HTTP port | Bind to 127.0.0.1 (Step 6a) |
 | `=` deleted while editing a login file; a check then showed part of a password | Only print key names and lengths; if a secret is exposed, change it |
