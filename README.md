@@ -11,7 +11,7 @@ Flowolf, powered by Numoro: a trading agent built from A to Z. MVP/POC for Lone 
 | Report | One-page read; the verdict is written by fixed rules so it matches the numbers | Built: `build_report.py`, `assets/template.html` |
 | Strategy rules | Daily rule set on the watchlist (e.g. trend filter, fixed size, stop, regime filter) | Phase 1, not started |
 | Paper trading | Alpaca paper account, shown in TradingView | Phase 1, not started |
-| Runtime | Hermes Agent on its own Hostinger server, one daily job. Server setup: `docs/SETUP-GUIDE.md` in hermes-bots | Phase 1, not started |
+| Runtime | Hermes Agent on its own Hostinger server, one daily job. Server setup: `docs/SETUP-GUIDE.md` | Phase 1, not started |
 | Reporting | Telegram: daily trades, positions and P&L against buy-and-hold; weekly scorecard | Phase 1, not started |
 | Guardrails | Paper keys only, kill switch, bounds on every parameter, rollback | Phase 1, not started |
 | AI second opinion | A second paper account where the AI must agree to each rule-triggered entry | Phase 2 |
@@ -22,6 +22,9 @@ Flowolf, powered by Numoro: a trading agent built from A to Z. MVP/POC for Lone 
 | Path | What |
 |---|---|
 | `skills/numoro-markov-regime/` | The analysis engine as a Claude skill ("run flowolf on TICKER"): SKILL.md, scripts, report template |
+| `docs/SETUP-GUIDE.md` | Step-by-step build of Flowolf's Hermes server on Hostinger, with who does what |
+| `scripts/deploy-kit.sh` | Install or update the bot's rules, skills and tools on its server (run from your Mac) |
+| `scripts/pull-skills.sh` | Pull the bot's self-edited skills back here for review |
 
 ## Run the analysis
 From the repo root, in a shell that can reach Yahoo (e.g. your Mac):
