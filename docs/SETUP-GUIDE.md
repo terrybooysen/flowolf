@@ -68,7 +68,17 @@ In hPanel > Docker Manager, click **Terminal** on the hermes-agent row. This mus
 6. Home channel: **Y**. Then **Done** and **Y** to restart.
 7. Test: message the bot "hi, what model are you running?"
 
-If the bot doesn't answer: inside the container, `hermes gateway status` falsely says "not running". Claude restarts it with `/package/admin/s6/command/s6-svc -r /run/service/gateway-default` and checks the log for `telegram connected`.
+If the bot doesn't answer: inside the container, `hermes gateway status` falsely says "not running". Restart the gateway and read its log:
+
+```
+/package/admin/s6/command/s6-svc -r /run/service/gateway-default
+sleep 5; grep -iE 'telegram|conflict|unauthor|error' /opt/data/logs/gateway.log | tail -15
+```
+
+- `telegram connected`: the server is fine. Message the right bot, press **Start**, and check your ID is in the allowed list.
+- `Unauthorized` or 401: the token went in wrong. Run `hermes gateway setup` > Telegram > **Manual** again and paste it.
+- `Conflict` or 409: another server uses the same token. Every bot needs its own BotFather token.
+- Nothing at all: the gateway never started. Run `hermes gateway setup` again and answer **Y** to restart.
 
 ## Step 6: Harden the server (20 min, Claude + you)
 
