@@ -1,0 +1,519 @@
+<!-- Flowolf — powered by Numoro · numoro-markov-regime report template -->
+<title>[[ticker]] Markov Regime Read</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: single-column quant note on an 880px measure. Verdict and four readings first, then one figure per question, method last. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #fcfdfe;
+  --ink: #0f1a2b;
+  --ink-2: #47536a;
+  --muted: #727d92;
+  --grid: #e3e7ee;
+  --axis: #c2c9d5;
+  --rule: rgba(15, 26, 43, 0.12);
+  --accent: #1f56c9;
+  --accent-wash: rgba(31, 86, 201, 0.09);
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --r0: #a99ff0;
+  --r1: #7465d9;
+  --r2: #3b2c8f;
+  --heat-lo: #eaf1fb;
+  --heat-hi: #1c5cab;
+  --shadow: rgba(15, 26, 43, 0.12);
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1117; --surface: #151a22; --ink: #edf1f7; --ink-2: #b3bccb; --muted: #8b94a5;
+    --grid: #252c37; --axis: #3a4351; --rule: rgba(255, 255, 255, 0.11); --accent: #86aaff; --accent-wash: rgba(134, 170, 255, 0.13);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --r0: #4a3fa3; --r1: #7d70e0; --r2: #bdb5f8;
+    --heat-lo: #1a2536; --heat-hi: #6da7ec; --shadow: rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1117; --surface: #151a22; --ink: #edf1f7; --ink-2: #b3bccb; --muted: #8b94a5;
+  --grid: #252c37; --axis: #3a4351; --rule: rgba(255, 255, 255, 0.11); --accent: #86aaff; --accent-wash: rgba(134, 170, 255, 0.13);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --r0: #4a3fa3; --r1: #7d70e0; --r2: #bdb5f8;
+  --heat-lo: #1a2536; --heat-hi: #6da7ec; --shadow: rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
+.page { max-width: 880px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; display: flex; flex-direction: column; gap: 46px; }
+p { margin: 0; }
+.masthead { display: grid; gap: 10px; }
+.eyebrow, .label { font: 500 11.5px/1.2 var(--font-mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 600 clamp(31px, 5.2vw, 42px)/1.04 var(--font-display); letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+h2 { font: 600 25px/1.15 var(--font-display); margin: 0; text-wrap: balance; }
+.dek { color: var(--ink-2); max-width: 68ch; }
+.section { display: grid; gap: 16px; min-width: 0; }
+.takeaway { font-size: 16.5px; max-width: 66ch; }
+.note { color: var(--ink-2); font-size: 14px; max-width: 72ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 20px 22px; display: grid; gap: 10px; }
+.verdict-lead { font: 600 21px/1.3 var(--font-body); text-wrap: balance; max-width: 40ch; }
+.verdict p:not(.label) { max-width: 72ch; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { border-top: 2px solid var(--ink); padding-top: 10px; display: grid; gap: 3px; align-content: start; min-width: 0; }
+.tile .k { font-size: 12.5px; color: var(--ink-2); }
+.tile .v { font: 600 26px/1.15 var(--font-body); }
+.tile .s { font-size: 12.5px; color: var(--muted); }
+figure { margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 16px 12px; display: grid; gap: 10px; min-width: 0; }
+.fig-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 18px; }
+.fig-title { font-weight: 600; font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--ink-2); list-style: none; margin: 0; padding: 0; }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.key-line { display: inline-block; width: 16px; height: 2px; border-radius: 1px; }
+.key-box { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.bg-ink { background: var(--ink); } .bg-s1 { background: var(--s1); } .bg-s2 { background: var(--s2); } .bg-s3 { background: var(--s3); }
+.bg-r0 { background: var(--r0); } .bg-r1 { background: var(--r1); } .bg-r2 { background: var(--r2); }
+.plot { position: relative; min-width: 0; }
+.plot:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+figcaption { font-size: 12.5px; color: var(--muted); max-width: 80ch; }
+svg { display: block; }
+svg text { font-family: var(--font-mono); }
+.tick { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.endlabel { font-size: 11.5px; fill: var(--ink-2); font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+.capval { font-size: 11.5px; fill: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.catlab { font-size: 11.5px; fill: var(--ink-2); font-family: var(--font-body); }
+.reflab { font-size: 11px; fill: var(--ink-2); font-family: var(--font-body); }
+.grid { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
+.axis { stroke: var(--axis); stroke-width: 1; shape-rendering: crispEdges; }
+.refline { stroke: var(--ink-2); stroke-width: 1; shape-rendering: crispEdges; }
+.series { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.leader { fill: none; stroke-width: 1; }
+.c-ink { stroke: var(--ink); } .c-s1 { stroke: var(--s1); } .c-s2 { stroke: var(--s2); } .c-s3 { stroke: var(--s3); }
+.f-ink { fill: var(--ink); } .f-s1 { fill: var(--s1); } .f-s2 { fill: var(--s2); } .f-s3 { fill: var(--s3); }
+.f-r0 { fill: var(--r0); } .f-r1 { fill: var(--r1); } .f-r2 { fill: var(--r2); }
+.dot { stroke: var(--surface); stroke-width: 2; }
+.cross { stroke: var(--ink-2); stroke-width: 1; }
+.hit { fill: transparent; cursor: crosshair; }
+.bar-hit { fill: transparent; }
+.bar:hover, .bar.on { opacity: 0.82; }
+.tip { position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 8px 22px var(--shadow); padding: 8px 10px; font-size: 12.5px; display: grid; gap: 3px; min-width: 150px; }
+.tip .d { color: var(--muted); font-size: 11.5px; }
+.tip .row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.tip .row b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tip .row span { color: var(--ink-2); }
+.table-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; min-width: 0; }
+.tbl-title { padding: 12px 12px 4px; font-weight: 600; font-size: 14px; }
+.table-scroll { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 8px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); }
+th:first-child, td:first-child { text-align: left; padding-left: 12px; }
+th:last-child, td:last-child { padding-right: 12px; }
+thead th { font: 500 11.5px/1.3 var(--font-body); color: var(--ink-2); vertical-align: bottom; }
+td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td:first-child, th[scope="row"] { font-family: var(--font-body); font-weight: 500; text-align: left; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+tfoot td, tfoot th { border-top: 1px solid var(--axis); border-bottom: 0; color: var(--ink-2); }
+.sub { display: block; font: 400 11.5px/1.3 var(--font-mono); color: var(--muted); }
+tr.today th[scope="row"] { box-shadow: inset 3px 0 0 var(--accent); }
+.chip { display: inline-block; font: 500 10.5px/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-wash); border-radius: 3px; padding: 3px 5px; margin-left: 6px; vertical-align: 1px; }
+td.heat { min-width: 66px; transition: none; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 7px; vertical-align: 0; }
+.pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 640px) { .pairs { grid-template-columns: minmax(0, 1fr); } }
+.pair { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.pair .k { font-size: 13px; color: var(--ink-2); }
+.cmp { display: flex; flex-wrap: wrap; gap: 10px 26px; }
+.cmp div { display: grid; gap: 1px; }
+.cmp .v { font: 600 24px/1.15 var(--font-body); }
+.cmp .v.quiet { color: var(--muted); }
+.cmp .s { font-size: 12px; color: var(--muted); }
+details { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; min-width: 0; }
+summary { cursor: pointer; padding: 10px 14px; font-size: 13px; color: var(--ink-2); }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+details[open] summary { border-bottom: 1px solid var(--grid); }
+details .table-scroll { border-radius: 0 0 8px 8px; }
+.checks { margin: 0; padding-left: 18px; display: grid; gap: 8px; max-width: 74ch; font-size: 14.5px; }
+.checks li::marker { color: var(--muted); }
+.method { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 10px 18px; margin: 0; font-size: 14px; }
+.method dt { font-weight: 600; }
+.method dd { margin: 0; color: var(--ink-2); max-width: 70ch; }
+@media (max-width: 560px) { .method { grid-template-columns: minmax(0, 1fr); gap: 2px; } .method dd { margin-bottom: 10px; } }
+.foot { border-top: 1px solid var(--rule); padding-top: 14px; font-size: 12.5px; color: var(--muted); display: grid; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<main class="page">
+  <header class="masthead">
+    <p class="eyebrow">Quant note · [[ticker]] · Markov regime</p>
+    <h1>[[ticker]] Markov regime read</h1>
+    <p class="dek">[[dek]]</p>
+  </header>
+
+  <section class="verdict" aria-labelledby="verdict-h">
+    <p class="label" id="verdict-h">Verdict</p>
+    <p class="verdict-lead">[[verdict_lead]]</p>
+    <p>[[verdict_body]]</p>
+  </section>
+
+  <section class="tiles" aria-label="Current readings">
+    <div class="tile"><span class="k">Last close · [[last_short]]</span><span class="v">[[close]]</span><span class="s">[[tile1_sub]]</span></div>
+    <div class="tile"><span class="k">Chain state</span><span class="v">[[state_label]] day</span><span class="s">[[r1d]] falls in [[band_phrase]]</span></div>
+    <div class="tile"><span class="k">Chance the next day closes up</span><span class="v">[[pup_cur_r]]</span><span class="s">[[pup_all_r]] on an average day · [[gap_sig]]</span></div>
+    <div class="tile"><span class="k">Regime now</span><span class="v">[[regime_tile]]</span><span class="s">Calm [[calm_now]] · Choppy [[chop_now]] · Stress [[stress_now]]</span></div>
+  </section>
+
+  <section class="section" id="chain" aria-labelledby="chain-h">
+    <h2 id="chain-h">What the chain says about tomorrow</h2>
+    <p class="takeaway">[[chain_takeaway]]</p>
+    <figure>
+      <div class="fig-head"><span class="fig-title">Next-day band after [[state_article]] [[state_label]] day ([[n_cur]] cases, [[span_txt]])</span></div>
+      <div class="plot" id="nextday"></div>
+      <figcaption>[[state_label]] day = a daily return [[band_desc]], like [[last_dow_long]]'s. The line marks 20%, where the bars would sit if today told you nothing about tomorrow.</figcaption>
+    </figure>
+    <div class="table-card"><p class="tbl-title">Transition matrix: today's band (rows) to tomorrow's band (columns)</p><div class="table-scroll"><table id="heat">[[tbl_heat]]</table></div></div>
+    <p class="note">[[chain_note]]</p>
+  </section>
+
+  <section class="section" id="vol" aria-labelledby="vol-h">
+    <h2 id="vol-h">[[vol_h2]]</h2>
+    <p class="takeaway">[[vol_takeaway]]</p>
+    <div class="pairs">
+      <div class="pair">
+        <p class="k">Chance the next day is a big move (top or bottom band)</p>
+        <div class="cmp"><div><span class="v">[[ext_ext]]</span><span class="s">after a big move</span></div><div><span class="v quiet">[[ext_calm]]</span><span class="s">after any other day</span></div></div>
+      </div>
+      <div class="pair">
+        <p class="k">Day-to-day correlation (lag 1)</p>
+        <div class="cmp"><div><span class="v">[[ac_abs]]</span><span class="s">size of the move</span></div><div><span class="v quiet">[[ac_rank]]</span><span class="s">direction (rank)</span></div></div>
+      </div>
+    </div>
+    <p class="note">[[ac_note]]</p>
+  </section>
+
+  <section class="section" id="regimes" aria-labelledby="reg-h">
+    <h2 id="reg-h">Hidden regimes</h2>
+    <p class="takeaway">[[reg_takeaway]]</p>
+    <figure>
+      <div class="fig-head">
+        <span class="fig-title">[[ticker]] adjusted close, log scale, with the regime underneath</span>
+        <ul class="legend" aria-label="Regimes">
+          <li><span class="key-box bg-r0"></span>Calm</li>
+          <li><span class="key-box bg-r1"></span>Choppy</li>
+          <li><span class="key-box bg-r2"></span>Stress</li>
+        </ul>
+      </div>
+      <div class="plot" id="price" tabindex="0" aria-label="[[ticker]] price chart with regimes. Use left and right arrow keys to move through dates."></div>
+      <figcaption>The regime strip uses the model's hindsight labels. The backtest below only uses what the model knew on each day.</figcaption>
+    </figure>
+    <div class="table-card"><p class="tbl-title">Regimes and where they point next</p><div class="table-scroll"><table>[[tbl_regimes]]</table></div></div>
+    <p class="note">[[reg_note]]</p>
+    <details>
+      <summary>Table view: [[ticker]] return and regime mix by year</summary>
+      <div class="table-scroll"><table>[[tbl_years]]</table></div>
+    </details>
+  </section>
+
+  <section class="section" id="backtest" aria-labelledby="bt-h">
+    <h2 id="bt-h">Does it make money?</h2>
+    <p class="takeaway">[[bt_takeaway]]</p>
+    <figure>
+      <div class="fig-head">
+        <span class="fig-title">Growth of $1 from [[eq_start_long]], walk-forward, after costs</span>
+        <ul class="legend" aria-label="Strategies">
+          <li><span class="key-line bg-s1"></span>Buy &amp; hold</li>
+          <li><span class="key-line bg-s2"></span>Chain rule</li>
+          <li><span class="key-line bg-s3"></span>Stress filter (HMM)</li>
+        </ul>
+      </div>
+      <div class="plot" id="equity" tabindex="0" aria-label="Backtest growth of one dollar. Use left and right arrow keys to move through dates."></div>
+      <figcaption>Log scale. The strip shows the [[n_spells]] spells when the stress filter sat in cash.</figcaption>
+    </figure>
+    <div class="table-card"><p class="tbl-title">Results, [[bt_start]] to [[bt_end]] ([[bt_days]] sessions)</p><div class="table-scroll"><table>[[tbl_metrics]]</table></div></div>
+[[legs_block]]
+    <ul class="checks">
+[[checks]]
+    </ul>
+    <details>
+      <summary>Table view: strategy returns by year</summary>
+      <div class="table-scroll"><table>[[tbl_bt_years]]</table></div>
+    </details>
+  </section>
+
+  <section class="section" id="method" aria-labelledby="method-h">
+    <h2 id="method-h">Method</h2>
+    <dl class="method">
+      <dt>Data</dt><dd>[[method_data]]</dd>
+      <dt>Chain</dt><dd>Daily returns split into five equal bands at [[edges]]. Transition probabilities counted from [[n_pairs]] consecutive day pairs. Chi-square tests check whether tomorrow's direction, or band, depends on today's band.</dd>
+      <dt>Regimes</dt><dd>Gaussian hidden Markov model on daily log returns with three states, ordered by volatility; best of eight random starts. [[bic_sentence]]</dd>
+      <dt>Backtest</dt><dd>[[warmup_txt]] warm-up, then [[bt_start]] to [[bt_end]]. Each decision uses data up to that day's close and applies to the next session. Chain rule: hold [[ticker]] when today's band has had a positive average next day so far, otherwise cash. Stress filter: refit every quarter on all data to date, cash when the filtered stress probability is above 50%. 5 basis points per switch. Cash earns nothing, which slightly understates both timing rules when T-bill rates are high. No taxes.</dd>
+    </dl>
+  </section>
+
+  <footer class="foot">
+    <p>Statistical description of past prices, for information only. Not investment advice or a recommendation to buy or sell any security.</p>
+    <p>[[credit_line]]</p>
+  </footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var D = /*__DATA__*/null;
+  var NS = "http://www.w3.org/2000/svg";
+  var MINUS = "−";
+  var REG = ["Calm", "Choppy", "Stress"];
+
+  function pct(x, d) { d = d == null ? 1 : d; return (x < 0 ? MINUS : "") + Math.abs(x * 100).toFixed(d) + "%"; }
+  function usd(x) { return "$" + x.toFixed(2); }
+  function ts(s) { var p = s.split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+  function dfmt(ms) { return new Date(ms).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }); }
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, cls, anchor) {
+    var t = el("text", { x: x, y: y, "class": cls || "tick", "text-anchor": anchor || "start" }, parent);
+    t.textContent = s;
+    return t;
+  }
+  function bisect(arr, v) {
+    var lo = 0, hi = arr.length - 1;
+    if (v <= arr[0]) return 0;
+    if (v >= arr[hi]) return hi;
+    while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (arr[mid] <= v) lo = mid; else hi = mid; }
+    return (v - arr[lo] < arr[hi] - v) ? lo : hi;
+  }
+  function tipRow(tip, cls, value, label, kind) {
+    var row = document.createElement("div"); row.className = "row";
+    var key = document.createElement("span");
+    key.className = (kind === "box" ? "key-box " : "key-line ") + cls;
+    var b = document.createElement("b"); b.textContent = value;
+    var s = document.createElement("span"); s.textContent = label;
+    row.appendChild(key); row.appendChild(b); row.appendChild(s);
+    tip.appendChild(row);
+  }
+
+  var PT = D.px.d.map(ts);
+  var IDX = {}; D.px.d.forEach(function (d, i) { IDX[d] = i; });
+
+  function regimeRects() {
+    var r = D.reg, out = [], a = 0;
+    for (var k = 1; k <= r.length; k++) {
+      if (k === r.length || r[k] !== r[a]) { out.push({ a: PT[a], b: PT[k], cls: "f-r" + r[a] }); a = k; }
+    }
+    return out;
+  }
+  var RR = regimeRects();
+
+  function timeChart(box, cfg) {
+    box.textContent = "";
+    var W = Math.max(280, Math.floor(box.clientWidth));
+    var narrow = W < 600;
+    var H = cfg.height;
+    var strip = cfg.strip;
+    var m = { l: 64, r: (cfg.labels && !narrow) ? 150 : 14, t: 10, b: strip ? 50 : 28 };
+    var ph = H - m.t - m.b;
+    var T = cfg.t, n = T.length, t0 = T[0], t1 = T[n - 1];
+    var X = function (v) { return m.l + (v - t0) / (t1 - t0) * (W - m.l - m.r); };
+    var la = Math.log(cfg.domain[0]), lb = Math.log(cfg.domain[1]);
+    var Y = function (v) { return m.t + (1 - (Math.log(v) - la) / (lb - la)) * ph; };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, width: W, height: H, "aria-hidden": "true" }, box);
+    cfg.ticks.forEach(function (tk) {
+      var y = Y(tk[0]);
+      el("line", { x1: m.l, x2: W - m.r, y1: y, y2: y, "class": "grid" }, svg);
+      txt(svg, m.l - 8, y + 4, tk[1], "tick", "end");
+    });
+    el("line", { x1: m.l, x2: W - m.r, y1: m.t + ph, y2: m.t + ph, "class": "axis" }, svg);
+    var yearY = strip ? m.t + ph + 6 + 12 + 17 : m.t + ph + 18;
+    var y0 = new Date(t0).getUTCFullYear() + 1, y1 = new Date(t1).getUTCFullYear();
+    var every = W < 420 ? 3 : (W < 640 ? 2 : 1);
+    for (var yr = y0; yr <= y1; yr++) {
+      var x = X(Date.UTC(yr, 0, 1));
+      el("line", { x1: x, x2: x, y1: m.t + ph, y2: m.t + ph + 4, "class": "axis" }, svg);
+      if ((yr - y0) % every === 0) txt(svg, x, yearY, String(yr), "tick", "middle");
+    }
+    if (strip) {
+      var sy = m.t + ph + 6;
+      txt(svg, m.l - 8, sy + 10, strip.label, "tick", "end");
+      strip.rects.forEach(function (r) {
+        var xa = X(r.a), xb = Math.max(X(r.b), xa + 1.5);
+        el("rect", { x: xa.toFixed(2), y: sy, width: (xb - xa).toFixed(2), height: 12, "class": r.cls }, svg);
+      });
+    }
+    cfg.series.forEach(function (s) {
+      var d = "";
+      for (var i = 0; i < n; i++) d += (i ? "L" : "M") + X(T[i]).toFixed(1) + " " + Y(s.v[i]).toFixed(1);
+      el("path", { d: d, "class": "series " + s.stroke }, svg);
+    });
+    var xe = X(t1);
+    cfg.series.forEach(function (s) { el("circle", { cx: xe, cy: Y(s.v[n - 1]), r: 4, "class": "dot " + s.fill }, svg); });
+    if (cfg.labels && !narrow) {
+      var items = cfg.series.map(function (s) { return { s: s, y0: Y(s.v[n - 1]), y: Y(s.v[n - 1]) }; });
+      items.sort(function (a, b) { return a.y0 - b.y0; });
+      for (var it = 0; it < 30; it++) {
+        for (var j = 1; j < items.length; j++) {
+          var gap = items[j].y - items[j - 1].y;
+          if (gap < 16) { var push = (16 - gap) / 2; items[j - 1].y -= push; items[j].y += push; }
+        }
+      }
+      items.forEach(function (o) {
+        var lx = xe + 18;
+        el("path", { d: "M" + (xe + 6) + " " + o.y0.toFixed(1) + " L" + (lx - 4) + " " + o.y.toFixed(1), "class": "leader " + o.s.stroke }, svg);
+        txt(svg, lx, o.y + 4, cfg.labelFmt(o.s), "endlabel", "start");
+      });
+    }
+    var cross = el("line", { y1: m.t, y2: m.t + ph, "class": "cross", visibility: "hidden" }, svg);
+    var dots = cfg.series.map(function (s) { return el("circle", { r: 4, "class": "dot " + s.fill, visibility: "hidden" }, svg); });
+    var hit = el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: ph + (strip ? 18 : 0), "class": "hit" }, svg);
+    var tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; box.appendChild(tip);
+    function show(i) {
+      var x = X(T[i]);
+      cross.setAttribute("x1", x); cross.setAttribute("x2", x); cross.setAttribute("visibility", "visible");
+      cfg.series.forEach(function (s, k) { dots[k].setAttribute("cx", x); dots[k].setAttribute("cy", Y(s.v[i])); dots[k].setAttribute("visibility", "visible"); });
+      tip.textContent = "";
+      cfg.tooltip(tip, i);
+      tip.hidden = false;
+      var bw = tip.offsetWidth;
+      var left = x + 14; if (left + bw > W - 2) left = Math.max(2, x - 14 - bw);
+      tip.style.transform = "translate(" + left + "px," + (m.t + 4) + "px)";
+      box._i = i;
+    }
+    function hide() { cross.setAttribute("visibility", "hidden"); dots.forEach(function (d) { d.setAttribute("visibility", "hidden"); }); tip.hidden = true; }
+    hit.addEventListener("pointermove", function (e) {
+      var r = svg.getBoundingClientRect();
+      var px = (e.clientX - r.left) * (W / r.width);
+      var tv = t0 + (px - m.l) / (W - m.l - m.r) * (t1 - t0);
+      show(bisect(T, tv));
+    });
+    hit.addEventListener("pointerleave", hide);
+    box.onfocus = function () { show(box._i == null ? n - 1 : box._i); };
+    box.onblur = hide;
+    box.onkeydown = function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key !== "Home" && e.key !== "End") return;
+      e.preventDefault();
+      var i = box._i == null ? n - 1 : box._i, step = e.shiftKey ? 21 : 1;
+      if (e.key === "ArrowLeft") i = Math.max(0, i - step);
+      if (e.key === "ArrowRight") i = Math.min(n - 1, i + step);
+      if (e.key === "Home") i = 0;
+      if (e.key === "End") i = n - 1;
+      show(i);
+    };
+  }
+
+  function renderPrice() {
+    var box = document.getElementById("price");
+    timeChart(box, {
+      height: 330, t: PT, domain: D.ui.price.domain, ticks: D.ui.price.ticks,
+      series: [{ v: D.px.c, stroke: "c-ink", fill: "f-ink", name: D.ticker }],
+      strip: { label: "Regime", rects: RR },
+      tooltip: function (tip, i) {
+        var d = document.createElement("div"); d.className = "d"; d.textContent = dfmt(PT[i]); tip.appendChild(d);
+        var r = +D.reg[Math.max(0, i - 1)];
+        tipRow(tip, "bg-ink", usd(D.px.c[i]), "adjusted close", "line");
+        tipRow(tip, "bg-r" + r, REG[r], "regime (hindsight)", "box");
+      }
+    });
+  }
+
+  function renderEquity() {
+    var box = document.getElementById("equity");
+    var s0 = D.eq.start;
+    var T = PT.slice(s0);
+    var ser = [
+      { v: D.eq.bh, stroke: "c-s1", fill: "f-s1", bg: "bg-s1", name: "Buy & hold" },
+      { v: D.eq.ch, stroke: "c-s2", fill: "f-s2", bg: "bg-s2", name: "Chain rule" },
+      { v: D.eq.hm, stroke: "c-s3", fill: "f-s3", bg: "bg-s3", name: "Stress filter" }
+    ];
+    var rects = D.cash.map(function (c) { return { a: PT[IDX[c[0]] - 1], b: PT[IDX[c[1]]], cls: "f-s3" }; });
+    timeChart(box, {
+      height: 330, t: T, domain: D.ui.eq.domain, ticks: D.ui.eq.ticks,
+      series: ser, labels: true,
+      labelFmt: function (s) { return usd(s.v[s.v.length - 1]) + "  " + s.name; },
+      strip: { label: "In cash", rects: rects },
+      tooltip: function (tip, i) {
+        var d = document.createElement("div"); d.className = "d"; d.textContent = dfmt(T[i]); tip.appendChild(d);
+        ser.slice().sort(function (a, b) { return b.v[i] - a.v[i]; }).forEach(function (s) { tipRow(tip, s.bg, usd(s.v[i]), s.name, "line"); });
+      }
+    });
+  }
+
+  function renderNextDay() {
+    var box = document.getElementById("nextday");
+    box.textContent = "";
+    var full = Math.max(280, Math.floor(box.clientWidth));
+    var W = Math.min(full, 640), H = 236;
+    var m = { l: 44, r: 12, t: 24, b: 46 };
+    var ph = H - m.t - m.b;
+    var vals = D.chain.P[D.chain.cur];
+    var YMAX = D.ui.nd.max;
+    var Y = function (v) { return m.t + (1 - v / YMAX) * ph; };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, width: W, height: H, role: "img", "aria-label": "Next-day band probabilities after today's state" }, box);
+    D.ui.nd.ticks.forEach(function (v) {
+      el("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), "class": v === 0 ? "axis" : "grid" }, svg);
+      txt(svg, m.l - 8, Y(v) + 4, Math.round(v * 100) + "%", "tick", "end");
+    });
+    el("line", { x1: m.l, x2: W - m.r, y1: Y(0.2), y2: Y(0.2), "class": "refline" }, svg);
+    txt(svg, m.l - 8, Y(0.2) + 4, "20%", "tick", "end");
+    var band = (W - m.l - m.r) / 5, bw = Math.min(24, band * 0.45);
+    var shortLab = band < 78;
+    vals.forEach(function (v, k) {
+      var cx = m.l + band * (k + 0.5), x = cx - bw / 2, y = Y(v), base = Y(0), r = 4;
+      var g = el("g", { "class": "bar" }, svg);
+      el("path", { d: "M" + x + " " + base + " L" + x + " " + (y + r) + " Q" + x + " " + y + " " + (x + r) + " " + y + " L" + (x + bw - r) + " " + y + " Q" + (x + bw) + " " + y + " " + (x + bw) + " " + (y + r) + " L" + (x + bw) + " " + base + " Z", "class": "f-s1" }, g);
+      var t = el("title", null, g); t.textContent = D.chain.labels[k] + " next day: " + pct(v);
+      txt(svg, cx, y - 7, pct(v), "capval", "middle");
+      var name = D.chain.labels[k];
+      if (shortLab && name.indexOf(" ") > 0) {
+        txt(svg, cx, base + 16, name.split(" ")[0], "catlab", "middle");
+        txt(svg, cx, base + 30, name.split(" ")[1], "catlab", "middle");
+      } else {
+        txt(svg, cx, base + 16, name, "catlab", "middle");
+        if (!shortLab) txt(svg, cx, base + 31, D.chain.ranges[k], "tick", "middle");
+      }
+    });
+  }
+
+  function hexToRgb(h) {
+    h = h.replace("#", "").trim();
+    if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join("");
+    var n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function lum(c) {
+    var f = function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+  }
+  function paintHeat() {
+    var cs = getComputedStyle(document.documentElement);
+    var lo = hexToRgb(cs.getPropertyValue("--heat-lo")), hi = hexToRgb(cs.getPropertyValue("--heat-hi"));
+    document.querySelectorAll("td.heat").forEach(function (td) {
+      var p = +td.getAttribute("data-p");
+      var t = Math.min(1, Math.max(0, (p - D.ui.heat[0]) / (D.ui.heat[1] - D.ui.heat[0])));
+      var c = lo.map(function (v, i) { return Math.round(v + (hi[i] - v) * t); });
+      td.style.background = "rgb(" + c.join(",") + ")";
+      td.style.color = lum(c) > 0.32 ? "#0f1a2b" : "#f4f7fb";
+    });
+  }
+
+  function renderAll() { paintHeat(); renderNextDay(); renderPrice(); renderEquity(); }
+  var lastW = 0, raf = 0;
+  function onResize() {
+    var w = document.querySelector(".page").clientWidth;
+    if (w === lastW) return;
+    lastW = w;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function () { renderNextDay(); renderPrice(); renderEquity(); });
+  }
+  renderAll();
+  lastW = document.querySelector(".page").clientWidth;
+  if (window.ResizeObserver) new ResizeObserver(onResize).observe(document.querySelector(".page"));
+  else window.addEventListener("resize", onResize);
+  var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  if (mq && mq.addEventListener) mq.addEventListener("change", function () { requestAnimationFrame(paintHeat); });
+  new MutationObserver(function () { requestAnimationFrame(paintHeat); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { renderNextDay(); renderPrice(); renderEquity(); });
+})();
+</script>

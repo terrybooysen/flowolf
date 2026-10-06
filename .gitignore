@@ -1,0 +1,30 @@
+# Secrets - never commit
+.env
+*.env
+!env.example
+*client_secret*.json
+*token*.json
+*.pem
+*.key
+id_*
+
+# Analysis outputs (each run writes these to its working folder)
+prices.csv
+prices_meta.json
+chunks.json
+results.json
+arrays.npz
+facts.json
+report.html
+site/
+
+# Runtime data
+**/backups/
+**/logs/
+**/cache/
+*.db
+
+# Local junk
+__pycache__/
+*.pyc
+.DS_Store
