@@ -127,7 +127,7 @@ Everything the bot knows lives in this private repo, [terrybooysen/flowolf](http
 
 The starting rules for any bot (`shared/SOUL-base-template.md`) and the technical manual (`docs/SETUP-MANUAL.md`) stay in [terrybooysen/hermes-bots](https://github.com/terrybooysen/hermes-bots).
 
-**To install or update the bot**, paste this one line in **Mac Terminal** (prompt must show your Mac, not `root@srv...`):
+**To install or update the bot**, paste this one line in **Mac Terminal** (prompt must show your Mac, not `root@srv...`). Do it after Step 6, because it needs your SSH key on the server. Replace `<server-ip>` with the IP from hPanel's VPS overview and `hermes-agent-xxxx` with the app name from Step 2:
 
 ```
 git clone https://github.com/terrybooysen/flowolf.git ~/flowolf; cd ~/flowolf && git pull && ./scripts/deploy-kit.sh root@<server-ip> /docker/hermes-agent-xxxx
