@@ -11,7 +11,7 @@ Flowolf, powered by Numoro: a trading agent built from A to Z. MVP/POC for Lone 
 | Report | One-page read; the verdict is written by fixed rules so it matches the numbers | Built: `build_report.py`, `assets/template.html` |
 | Strategy rules | Daily rule set on the watchlist (e.g. trend filter, fixed size, stop, regime filter) | Phase 1, not started |
 | Paper trading | Alpaca paper account, shown in TradingView | Phase 1, not started |
-| Runtime | Hermes Agent on its own Hostinger server, one daily job | Phase 1, not started |
+| Runtime | Hermes Agent on its own Hostinger server, one daily job. Server setup: `docs/SETUP-GUIDE.md` in hermes-bots | Phase 1, not started |
 | Reporting | Telegram: daily trades, positions and P&L against buy-and-hold; weekly scorecard | Phase 1, not started |
 | Guardrails | Paper keys only, kill switch, bounds on every parameter, rollback | Phase 1, not started |
 | AI second opinion | A second paper account where the AI must agree to each rule-triggered entry | Phase 2 |
