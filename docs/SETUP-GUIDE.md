@@ -13,8 +13,8 @@ This builds a private AI operations bot you message on Telegram, running Hermes 
 | End result | Telegram bot, only you can use it, connected only to the systems its job needs |
 | Time | About 2-3 hours for the core bot, plus about 20 min per system it connects to |
 | Running cost | Hostinger KVM 2 about $14-25/month + your existing ChatGPT subscription |
-| You do | Payments, sign-ins, passwords, approvals, creating user accounts |
-| Claude does | Everything else: server setup, hardening, rules, skills, tools, testing |
+| You do | Payments, sign-ins, passwords, approvals, creating user accounts, and pasting the security commands in Step 6 |
+| Claude does | Everything else: server setup, the exact Step 6 commands and checking them, rules, skills, tools, testing |
 
 Golden rule: **one bot, one job, its own logins.** Never reuse your own or another bot's credentials, so any bot can be cut off without breaking anything else.
 
@@ -82,9 +82,9 @@ sleep 5; grep -iE 'telegram|conflict|unauthor|error' /opt/data/logs/gateway.log 
 
 ## Step 6: Harden the server (20 min, Claude + you)
 
-Do this before the bot gets any business logins. Run from the **host** shell (type `exit` to leave the container).
+Do this before the bot gets any business logins. **You** paste these in the server's main shell: hPanel > VPS > **Browser terminal** (prompt `root@srv...`). Claude doesn't change server security settings itself; it gives you the exact lines and checks the result.
 
-**6a. Close the open dashboard port.** Hostinger exposes the Hermes dashboard on a random port over plain HTTP. Claude backs up the compose file, binds the port to the server itself, and restarts (about 30 s downtime):
+**6a. Close the open dashboard port.** Hostinger exposes the Hermes dashboard on a random port over plain HTTP. This backs up the compose file, binds the port to the server itself, and restarts (about 30 s downtime):
 
 ```
 cd /docker/hermes-agent-xxxx
