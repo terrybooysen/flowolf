@@ -103,12 +103,25 @@ ufw allow 22/tcp; ufw allow 80/tcp; ufw allow 443/tcp
 ufw --force enable
 ```
 
-**6c. SSH keys only.**
+**6c. SSH keys only.** This is the root access the Step 7 deploy line uses, so do it before Step 7.
 
-1. **You**, in Mac Terminal: `ssh-keygen -t ed25519 -C "terry-superior"` (skip if the key exists), then `cat ~/.ssh/id_ed25519.pub`. Share only that `ssh-ed25519 ...` line.
-2. **Claude** adds it to the server.
-3. **You** test: `ssh root@<server-ip>`. It must ask for your key passphrase, not a password.
-4. Only then **Claude** turns password login off and **you** test again. Hostinger's web terminal stays as a backup.
+1. **You**, in Mac Terminal: `cat ~/.ssh/id_ed25519.pub`. If it says "No such file", first run `ssh-keygen -t ed25519 -C "terry-superior"`. Copy the whole line (it starts `ssh-ed25519`).
+2. **You**, on the server (hPanel > VPS > **Browser terminal**, prompt `root@srv...`): paste this, replacing `KEY` with that line and keeping the quotes:
+
+```
+mkdir -p /root/.ssh && chmod 700 /root/.ssh
+echo 'KEY' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
+```
+
+3. **You** test from Mac Terminal: `ssh root@<server-ip>` (IP on the VPS overview; type `yes` the first time). It may ask for your key's passphrase, but it must not ask for the server's password. Type `exit` to come back.
+4. Only once that works, turn password login off in the Browser terminal, then repeat the test:
+
+```
+printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\nPermitRootLogin prohibit-password\n' > /etc/ssh/sshd_config.d/00-hardening.conf
+sshd -t && systemctl reload ssh
+```
+
+Hostinger's Browser terminal stays as a backup if you're ever locked out.
 
 **6d. Check isolation** (already true with the Hostinger app): the agent runs as user `hermes` (uid 10000), not root, and has no Docker socket, so it can't control the server.
 
