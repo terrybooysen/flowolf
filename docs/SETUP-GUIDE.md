@@ -208,6 +208,7 @@ Every login file on the server follows the same pattern: Claude creates it with 
 | --- | --- |
 | nexos.ai credits pre-ticked in the cart | Untick before paying |
 | Hostinger asked to choose WebUI or Native | Native; WebUI adds a separate web chat app to secure |
+| Second server didn't show in hPanel | Each Hostinger login only shows its own servers; buy under the supersys Google login (Step 1) |
 | Telegram "Automatic" setup goes through Nous's bot | Always Manual + BotFather |
 | Dashboard exposed on a raw HTTP port | Bind to 127.0.0.1 (Step 6a) |
 | `=` deleted while editing a login file; a check then showed part of a password | Only print key names and lengths; if a secret is exposed, change it |
