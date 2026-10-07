@@ -82,7 +82,7 @@ sleep 5; grep -iE 'telegram|conflict|unauthor|error' /opt/data/logs/gateway.log 
 
 ## Step 6: Harden the server (20 min, Claude + you)
 
-Do this before the bot gets any business logins. **You** paste these in the server's main shell: hPanel > VPS > **Browser terminal** (prompt `root@srv...`). Claude doesn't change server security settings itself; it gives you the exact lines and checks the result.
+Do this before the bot gets any business logins. **You** paste these on the server: in Mac Terminal after `ssh root@<server-ip>` (set up in 6c), or in hPanel > VPS > **Browser terminal** (prompt `root@srv...`). Claude doesn't change server security settings itself; it gives you the exact lines and checks the result.
 
 **6a. Close the open dashboard port.** Hostinger exposes the Hermes dashboard on a random port over plain HTTP. This backs up the compose file, binds the port to the server itself, and restarts (about 30 s downtime):
 
@@ -103,22 +103,22 @@ ufw allow 22/tcp; ufw allow 80/tcp; ufw allow 443/tcp
 ufw --force enable
 ```
 
-**6c. SSH keys only.** This is the root access the Step 7 deploy line uses, so do it before Step 7.
+**6c. SSH keys only.** This is the root access the Step 7 deploy line uses, so do it before Step 7. Easiest from Mac Terminal:
 
-1. **You**, in Mac Terminal: `cat ~/.ssh/id_ed25519.pub`. If it says "No such file", first run `ssh-keygen -t ed25519 -C "terry-superior"`. Copy the whole line (it starts `ssh-ed25519`).
-2. **You**, on the server (hPanel > VPS > **Browser terminal**, prompt `root@srv...`): paste this, replacing `KEY` with that line and keeping the quotes:
-
-```
-mkdir -p /root/.ssh && chmod 700 /root/.ssh
-echo 'KEY' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
-```
-
-3. **You** test from Mac Terminal: `ssh root@<server-ip>` (IP on the VPS overview; type `yes` the first time). It may ask for your key's passphrase, but it must not ask for the server's password. Type `exit` to come back.
-4. Only once that works, turn password login off in the Browser terminal, then repeat the test:
+1. **You:** `ssh-copy-id root@<server-ip>` (IP on the VPS overview). Type `yes` the first time, then the server's root password once; this copies your Mac's key to the server. If it says no identities were found, first run `ssh-keygen -t ed25519 -C "terry-superior"`. Forgotten the root password? Reset it on the VPS page in hPanel, or use the fallback below.
+2. **You** test: `ssh root@<server-ip>`. It may ask for your key's passphrase, but it must not ask for the server's password. You're now on the server (prompt `root@srv...`) and can paste 6a, 6b and step 3 here.
+3. Turn password login off, then test `ssh root@<server-ip>` again from a new Terminal window:
 
 ```
 printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\nPermitRootLogin prohibit-password\n' > /etc/ssh/sshd_config.d/00-hardening.conf
 sshd -t && systemctl reload ssh
+```
+
+Fallback without the root password: in the Browser terminal, paste this with your key line (from `cat ~/.ssh/id_ed25519.pub` on the Mac) in place of `KEY`, then carry on from step 2:
+
+```
+mkdir -p /root/.ssh && chmod 700 /root/.ssh
+echo 'KEY' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
 ```
 
 Hostinger's Browser terminal stays as a backup if you're ever locked out.
