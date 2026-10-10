@@ -25,6 +25,7 @@ Flowolf, powered by Numoro: a trading agent built from A to Z. MVP/POC for Lone 
 | `docs/SETUP-GUIDE.md` | Step-by-step build of Flowolf's Hermes server on Hostinger, with who does what |
 | `scripts/deploy-kit.sh` | Install or update the bot's rules, skills and tools on its server (run from your Mac) |
 | `scripts/pull-skills.sh` | Pull the bot's self-edited skills back here for review |
+| `scripts/link-webui.sh` | Link Open WebUI to Hermes on the same server: API server on, shared network, checked; prints the URL and key |
 
 ## Run the analysis
 From the repo root, in a shell that can reach Yahoo (e.g. your Mac):
