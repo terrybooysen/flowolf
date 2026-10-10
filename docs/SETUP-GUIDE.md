@@ -35,7 +35,7 @@ Have ready: the Claude desktop app open on your Mac, your phone with Telegram, a
 
 **Step 2. Deploy Hermes**
 
-If Hostinger asks you to **choose an app**, pick **Hermes Agent Native**: Hermes's own dashboard, the same app the sentiv-ops server runs. Don't pick Hermes Agent WebUI: it adds a separate web chat app that also faces the internet.
+If Hostinger asks you to **choose an app**, pick **Hermes Agent Native**: Hermes's own dashboard, the same app the sentiv-ops server runs. Don't pick Hermes Agent WebUI: it adds a separate web chat app that also faces the internet. If you want a web chat, add it deliberately in Step 11.
 
 hPanel opens a **Hermes Agent configuration** form:
 
@@ -94,6 +94,8 @@ docker compose up -d
 ```
 
 The dashboard stays reachable at `https://hermes-agent-xxxx.<server>.hstgr.cloud`. Clicking **Update** on the app in hPanel may undo this, so re-check after every update.
+
+The firewall in 6b doesn't close ports Docker publishes, which is why this binds the port instead. If you added Open WebUI (Step 11) and it opens on the server IP with a port number, close that port the same way, but only once it has an https address (Claude sets that up first, or you lose access).
 
 **6b. Firewall:** allow only SSH (22), HTTP (80) and HTTPS (443).
 
@@ -202,12 +204,23 @@ Every login file on the server follows the same pattern: Claude creates it with 
 - Changed rules or skills: run the one-line deploy from Step 7, then `/reset`.
 - Every week or so, capture what the bot taught itself: `./scripts/pull-skills.sh root@<server-ip> /docker/hermes-agent-xxxx`, then `git diff` to review and commit.
 
+## Step 11 (optional): Web chat with Open WebUI (20 min, Claude + you)
+
+A second way in next to Telegram: same server, same agent. Every Open WebUI account can make the bot run commands on the server, so keep the logins to yourself until Lone Bull has its own restricted profile.
+
+1. **You:** hPanel > Docker Manager > install **Open WebUI** on the same server. Open it and create your account first (the first account becomes admin). Then Admin Panel > Settings > General > switch off **Enable New Sign Ups**.
+2. **Claude** links it to Hermes with `scripts/link-webui.sh`, run in hPanel's Browser terminal. After Step 6 you can run it yourself from Mac Terminal: `cd ~/flowolf && git pull && ssh root@<server-ip> 'bash -s' < scripts/link-webui.sh`. It switches on Hermes's API server, puts both apps on a shared Docker network, checks that Open WebUI can reach Hermes, and prints a URL and key. Telegram drops for a few seconds while the gateway restarts.
+3. **You:** in Open WebUI, go to Admin Panel > Settings > Connections. Click the gear on the `api.openai.com` row and replace its URL and key with the printed ones (the URL starts `http://`, not https). Click the round-arrows button to verify, then **Save**. Switch **Ollama API** off and press **Save**. Close the terminal tab, because the key is on screen there.
+4. **Test:** New Chat > pick **hermes-agent** > "who are you?". Then check Telegram still answers.
+5. Run the script again after Hostinger updates either app.
+
 ## Lessons learned and checklist
 
 | What happened | Do this instead |
 | --- | --- |
 | nexos.ai credits pre-ticked in the cart | Untick before paying |
-| Hostinger asked to choose WebUI or Native | Native; WebUI adds a separate web chat app to secure |
+| Hostinger asked to choose WebUI or Native | Native; WebUI adds a separate web chat app to secure. For a web chat, Step 11 |
+| Open WebUI couldn't see Hermes on the same server | Run `link-webui.sh` (Step 11): it switches on Hermes's API server and puts both apps on one Docker network |
 | Second server didn't show in hPanel | Each Hostinger login only shows its own servers; buy under the supersys Google login (Step 1) |
 | Telegram "Automatic" setup goes through Nous's bot | Always Manual + BotFather |
 | Dashboard exposed on a raw HTTP port | Bind to 127.0.0.1 (Step 6a) |
@@ -223,6 +236,7 @@ Every login file on the server follows the same pattern: Claude creates it with 
 
 - [ ] Telegram allowlist = named people only
 - [ ] Dashboard port bound to localhost; HTTPS address works
+- [ ] Open WebUI (if used): sign-ups off, opened only over https, raw port bound to localhost
 - [ ] Firewall on: 22, 80, 443 only
 - [ ] SSH key-only, tested after the change
 - [ ] Agent runs as uid 10000 with no Docker socket
