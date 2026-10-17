@@ -21,6 +21,12 @@ Limits
 - With few variants (under ~10) the rank is coarse and PBO is noisy.
 - Blocks are contiguous, which keeps time structure, but S/2 blocks still
   mix early and late periods in-sample.
+- By default the winner is ranked only against variants that didn't lose
+  money significantly in sample (``competitive_only``). Plain CSCV can be
+  gamed by padding the trial set with sure losers; this stops that without
+  using any out-of-sample information. Mildly negative padding still lowers
+  PBO a little; the deflated Sharpe catches that case, because the losers
+  widen the spread of trial Sharpes. Ties get average ranks.
 """
 
 from __future__ import annotations
@@ -46,7 +52,8 @@ class PBOResult:
 
 
 def pbo_cscv(trial_returns: pd.DataFrame | np.ndarray, n_blocks: int = 16,
-             max_splits: int | None = None, seed: int = 0) -> PBOResult:
+             max_splits: int | None = None, seed: int = 0,
+             competitive_only: bool = True) -> PBOResult:
     """PBO for a matrix of trial returns (rows = dates, columns = variants)."""
     M = np.asarray(trial_returns, dtype=float)
     if M.ndim != 2 or M.shape[1] < 2:
@@ -83,12 +90,28 @@ def pbo_cscv(trial_returns: pd.DataFrame | np.ndarray, n_blocks: int = 16,
     sr_oos = sharpe_from(1.0 - C)
     best = sr_is.argmax(axis=1)
     k = np.arange(len(combos))
-    # Relative rank of the chosen variant out of sample, in (0, 1).
-    oos_ranks = sr_oos.argsort(axis=1).argsort(axis=1)[k, best] + 1     # 1..N
-    omega = oos_ranks / (N + 1.0)
+    oos_best = sr_oos[k, best]
+    # Compare the winner only with variants that were competitive in sample
+    # (at or above that split's in-sample median). Padding the trial set with
+    # deliberately bad variants would otherwise make any winner look robust.
+    # The filter uses in-sample data only, so it leaks nothing.
+    if competitive_only:
+        # Drop variants that lost money significantly in sample (Sharpe more
+        # than two standard errors below zero). They can't be "competitors"
+        # and would only pad the ranking. The winner is always kept.
+        n_is = (C @ cnt)[:, None]
+        se = np.sqrt(1.0 / np.maximum(n_is - 1.0, 1.0))
+        comp = sr_is > -2.0 * se
+        comp[k, best] = True
+    else:
+        comp = np.ones_like(sr_is, dtype=bool)
+    below = ((sr_oos < oos_best[:, None]) & comp).sum(axis=1)
+    equal = ((sr_oos == oos_best[:, None]) & comp).sum(axis=1)      # includes the winner itself
+    n_comp = comp.sum(axis=1)
+    rank = below + (equal + 1) / 2.0                                # average rank for ties, 1..n_comp
+    omega = rank / (n_comp + 1.0)
     logits = np.log(omega / (1.0 - omega))
     is_best = sr_is[k, best]
-    oos_best = sr_oos[k, best]
     slope = float(np.polyfit(is_best, oos_best, 1)[0]) if np.ptp(is_best) > 0 else 0.0
     return PBOResult(pbo=float((logits <= 0).mean()), n_splits=len(combos), n_trials=N,
                      n_blocks=n_blocks, logits=logits, is_best_sharpe=is_best,

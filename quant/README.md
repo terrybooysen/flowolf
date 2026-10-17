@@ -26,9 +26,12 @@ python -m pytest -q
 ```python
 from flowolf_quant import data
 from flowolf_quant.research import research, GridProposer
+from flowolf_quant.validation import HoldoutLedger, TrialRegistry
 
 r = data.planted_trend(n=3024, strength=0.10, lookback=20, seed=4)   # or real daily returns
-report = research(r, "trend_sign", GridProposer(points_per_param=50))
+report = research(r, "trend_sign", universe="demo", proposer=GridProposer(points_per_param=50),
+                  ledger=HoldoutLedger("state/holdout.jsonl"),     # persistent: holdout use is remembered
+                  registry=TrialRegistry("state/trials.jsonl"))    # persistent: every trial is remembered
 print(report.verdict.status)     # Pass / Fail / Not enough data
 print(report.verdict.summary)
 ```

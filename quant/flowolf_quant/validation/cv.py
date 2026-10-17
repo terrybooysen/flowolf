@@ -68,13 +68,16 @@ class CVResult:
 
 
 def cv_select_and_score(strategy_returns: Callable[[object], pd.Series],
-                        param_grid: Iterable, n_obs: int | None = None, k: int = 5,
-                        label_horizon: int = 1, feature_lookback: int = 0,
-                        embargo: int | float = 0.01) -> CVResult:
+                        param_grid: Iterable, *, feature_lookback: int,
+                        n_obs: int | None = None, k: int = 5,
+                        label_horizon: int = 1, embargo: int | float = 0.01) -> CVResult:
     """Choose a parameter on purged training folds; score it on the test fold.
 
     ``strategy_returns(param)`` must return the strategy's daily returns over
     the full sample (the rule itself must only use past data).
+    ``feature_lookback`` is required: set it to the longest look-back any
+    parameter in the grid uses, so training days just after a test block,
+    whose positions were computed from test-block returns, are purged.
     """
     grid = list(param_grid)
     series = {p: strategy_returns(p) for p in grid}

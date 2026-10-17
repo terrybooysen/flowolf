@@ -5,6 +5,11 @@ Rules that keep it honest:
   The caller passes *target weights as of the close of day t*; this module
   does the one-day shift. Never shift weights yourself before calling it.
 - Costs are charged on every change in weight, in basis points of turnover.
+- Holding a constant weight means rebalancing back to it every day at no
+  cost; drift between rebalances isn't modelled. Fine for daily rules,
+  slightly flattering for strategies that would let positions drift.
+- ``trades`` counts position entries and exits (sign changes), not daily
+  resizing.
 - No leverage or shorting limits are imposed here; strategies set their own.
 """
 
@@ -27,8 +32,12 @@ class BacktestResult:
     meta: dict = field(default_factory=dict)
 
     @property
+    def trades(self) -> int:
+        return count_trades(self.weights)
+
+    @property
     def metrics(self) -> dict:
-        return performance(self.returns, self.turnover)
+        return performance(self.returns, self.turnover, trades=self.trades)
 
 
 def run(asset_returns: pd.Series | pd.DataFrame,
@@ -48,6 +57,16 @@ def run(asset_returns: pd.Series | pd.DataFrame,
     return BacktestResult(returns=net.rename("strategy"), gross_returns=gross,
                           weights=held, turnover=turnover,
                           meta={"cost_bps": cost_bps})
+
+
+def count_trades(weights: pd.DataFrame | pd.Series) -> int:
+    """Position entries and exits: days on which an asset's position changes
+    sign (flat to long, long to short, short to flat, ...). Daily resizing of
+    an unchanged position, as volatility scaling does, is not a trade."""
+    W = weights.to_frame() if isinstance(weights, pd.Series) else weights
+    s = np.sign(W.fillna(0.0).round(12))
+    changes = s.diff().fillna(s.iloc[:1].where(s.iloc[:1] != 0, 0)).ne(0)
+    return int(changes.values.sum())
 
 
 def sharpe(r: pd.Series | np.ndarray, periods: int = TRADING_DAYS) -> float:
@@ -75,7 +94,8 @@ def cagr(r: pd.Series | np.ndarray, periods: int = TRADING_DAYS) -> float:
     return float(total ** (1 / years) - 1) if total > 0 else -1.0
 
 
-def performance(r: pd.Series, turnover: pd.Series | None = None) -> dict:
+def performance(r: pd.Series, turnover: pd.Series | None = None,
+                trades: int | None = None) -> dict:
     out = {
         "days": int(len(r)),
         "cagr": cagr(r),
@@ -85,5 +105,8 @@ def performance(r: pd.Series, turnover: pd.Series | None = None) -> dict:
     }
     if turnover is not None:
         out["turnover_per_year"] = float(turnover.mean() * TRADING_DAYS)
-        out["trades"] = int((turnover > 1e-9).sum())
+    if trades is not None:
+        out["trades"] = int(trades)
+    elif turnover is not None:
+        out["trades"] = int((turnover > 1e-9).sum())   # fallback: days with any trading
     return out

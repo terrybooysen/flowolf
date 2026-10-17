@@ -83,7 +83,7 @@ def test_hrp_sums_to_one_long_only():
 @pytest.mark.parametrize("sizes", [(6, 3), (4, 4), (2, 6), (8, 2)])
 def test_hrp_balances_clusters(sizes):
     P = _two_cluster_panel(sizes=sizes, seed=sum(sizes))
-    w = hrp_weights(P)                      # tree split (default)
+    w = hrp_weights(P, split="tree")        # tree split keeps uneven clusters whole
     c0 = w[[c for c in w.index if c.startswith("C0")]].sum()
     c1 = w[[c for c in w.index if c.startswith("C1")]].sum()
     assert c0 + c1 == pytest.approx(1.0)

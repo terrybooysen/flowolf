@@ -152,3 +152,40 @@ def test_effective_trials_counts_scaled_copies_once():
     copies.columns = [f"{a}{b}" for a, b in copies.columns]
     assert effective_trials(copies) == 6
     assert effective_trials(M) == 6
+
+
+def test_looser_config_cannot_be_constructed():
+    # M5
+    with pytest.raises(ValueError):
+        GateConfig(min_dsr=0.5)
+    with pytest.raises(ValueError):
+        GateConfig(max_pbo=0.9)
+    GateConfig(min_dsr=0.99)        # stricter is fine
+
+
+def test_padding_with_losers_does_not_make_noise_look_robust():
+    # M2
+    vals = []
+    for s in range(5):
+        M = data.random_walk_panel(n=2000, k=20, seed=s)
+        L = data.random_walk_panel(n=2000, k=40, seed=100 + s) - 0.002
+        L.columns = [f"L{i}" for i in range(40)]
+        vals.append(pbo_cscv(pd.concat([M, L], axis=1), n_blocks=10).pbo)
+    assert np.mean(vals) > 0.25
+
+
+def test_correlated_noise_copies_cannot_lower_the_bar():
+    # M1: 100 near-identical noise variants must face at least the paper's
+    # raw-count benchmark, not a single-test bar.
+    passes = 0
+    for s in range(40):
+        rng = np.random.default_rng(s)
+        T = 2520
+        common = rng.normal(0, 0.01, T)
+        M = pd.DataFrame({i: 0.98 * common + 0.2 * rng.normal(0, 0.01, T) for i in range(100)},
+                         index=data.business_days(T))
+        best = M.apply(bt.sharpe).idxmax()
+        v = evaluate(M[best], M, None, n_trades=100)
+        dsr = [c for c in v.checks if c.name == "deflated Sharpe"][0]
+        passes += bool(dsr.passed)
+    assert passes / 40 <= 0.075

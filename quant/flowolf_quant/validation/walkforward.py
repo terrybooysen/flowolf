@@ -42,6 +42,8 @@ def walk_forward(strategy_returns: Callable[[object], pd.Series], param_grid: It
     start = train_days
     while start + 1 <= n:
         end = min(start + test_days, n)
+        if n - end < max(test_days // 2, 1):
+            end = n                                   # fold a short tail into the last window
         lo = 0 if anchored else start - train_days
         best = max(grid, key=lambda p: sharpe(series[p].iloc[lo:start]))
         is_sr = sharpe(series[best].iloc[lo:start])

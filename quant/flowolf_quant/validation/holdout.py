@@ -2,9 +2,10 @@
 
 The most recent stretch of history (default two years) is hidden from all
 design work. A strategy is scored on it once. The ledger records every
-holdout score; scoring the same strategy family on the same holdout again is
-allowed but flagged, because a holdout you keep peeking at stops being
-out-of-sample.
+holdout score. Scoring the same strategy family on the same universe again,
+on any holdout that *overlaps* an earlier one, is allowed but flagged,
+because a holdout you keep peeking at stops being out-of-sample. Changing
+the holdout length or trimming a day does not reset the flag.
 """
 
 from __future__ import annotations
@@ -29,10 +30,10 @@ def split_holdout(r: pd.Series | pd.DataFrame, years: float = 2.0):
 
 @dataclass
 class HoldoutUse:
-    family: str
+    key: str
     holdout_start: str
     holdout_end: str
-    times_used_before: int
+    times_used_before: int         # earlier scores on an overlapping holdout
 
     @property
     def spent(self) -> bool:
@@ -40,23 +41,41 @@ class HoldoutUse:
 
 
 class HoldoutLedger:
-    """Append-only record of holdout scoring (JSON lines)."""
+    """Append-only record of holdout scoring.
 
-    def __init__(self, path: str):
+    With a ``path`` it persists as JSON lines; without one it lives in memory
+    (fine for tests and one-off runs, useless for keeping research honest
+    across sessions, so the app always passes a path or a database-backed
+    equivalent).
+    """
+
+    def __init__(self, path: str | None = None):
         self.path = path
+        self._mem: list[dict] = []
 
     def _entries(self) -> list[dict]:
+        if self.path is None:
+            return list(self._mem)
         if not os.path.exists(self.path):
             return []
         with open(self.path) as f:
             return [json.loads(line) for line in f if line.strip()]
 
-    def record(self, family: str, holdout: pd.Series | pd.DataFrame, score: dict) -> HoldoutUse:
-        start, end = str(holdout.index[0].date()), str(holdout.index[-1].date())
-        before = sum(1 for e in self._entries()
-                     if e["family"] == family and e["holdout_start"] == start and e["holdout_end"] == end)
-        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
-        with open(self.path, "a") as f:
-            f.write(json.dumps({"family": family, "holdout_start": start, "holdout_end": end,
-                                "score": score, "at": datetime.now(timezone.utc).isoformat()}) + "\n")
-        return HoldoutUse(family, start, end, before)
+    def record(self, key: str, holdout: pd.Series | pd.DataFrame, score: dict) -> HoldoutUse:
+        start, end = holdout.index[0], holdout.index[-1]
+        before = 0
+        for e in self._entries():
+            if e["key"] != key:
+                continue
+            s, t = pd.Timestamp(e["holdout_start"]), pd.Timestamp(e["holdout_end"])
+            if s <= end and start <= t:          # date ranges overlap
+                before += 1
+        entry = {"key": key, "holdout_start": str(start.date()), "holdout_end": str(end.date()),
+                 "score": score, "at": datetime.now(timezone.utc).isoformat()}
+        if self.path is None:
+            self._mem.append(entry)
+        else:
+            os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+            with open(self.path, "a") as f:
+                f.write(json.dumps(entry, default=str) + "\n")
+        return HoldoutUse(key, entry["holdout_start"], entry["holdout_end"], before)

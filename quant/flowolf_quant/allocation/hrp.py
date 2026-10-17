@@ -113,7 +113,7 @@ def _tree_bisection(cov: np.ndarray, link: np.ndarray) -> np.ndarray:
     return w
 
 
-def hrp_weights(returns_window: pd.DataFrame, split: str = "tree") -> pd.Series:
+def hrp_weights(returns_window: pd.DataFrame, split: str = "bisect") -> pd.Series:
     """Hierarchical Risk Parity weights for one estimation window.
 
     Reference: López de Prado (2016), JPM 42(4).
@@ -123,8 +123,8 @@ def hrp_weights(returns_window: pd.DataFrame, split: str = "tree") -> pd.Series:
 
     Returns a long-only Series summing to 1 (index = all input columns).
 
-    ``split``: ``'bisect'`` is the paper's recursive bisection, which halves
-    the quasi-diagonal *list* of assets at each step. ``'tree'`` (default)
+    ``split``: ``'bisect'`` (default) is the paper's recursive bisection, which halves
+    the quasi-diagonal *list* of assets at each step. ``'tree'`` (a variant, not the paper)
     splits at the dendrogram's own branches, so a whole cluster is never cut
     in two. With unequal cluster sizes, list halving can hand most of the
     weight to the larger cluster (e.g. an 8+2 two-cluster panel gets roughly
@@ -162,7 +162,7 @@ def hrp_weights(returns_window: pd.DataFrame, split: str = "tree") -> pd.Series:
 
 def rolling_hrp(asset_returns: pd.DataFrame, window: int = 252,
                 rebalance_every: int = 21, method: str = "hrp",
-                split: str = "tree") -> pd.DataFrame:
+                split: str = "bisect") -> pd.DataFrame:
     """Target weights recomputed every ``rebalance_every`` days on a trailing window.
 
     ``method``: ``'hrp'`` (default), ``'ivol'`` (inverse-vol) or ``'equal'``.

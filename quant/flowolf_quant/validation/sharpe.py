@@ -105,7 +105,7 @@ class DeflatedSharpe:
 
 
 def deflated_sharpe(r, n_trials: int, trial_sharpes=None,
-                    sr_variance: float | None = None) -> DeflatedSharpe:
+                    sr_variance: float | None = None, floor_variance: bool = True) -> DeflatedSharpe:
     """Deflated Sharpe ratio of the selected strategy's returns ``r``.
 
     The variance of Sharpe ratios across trials comes from, in order:
@@ -120,9 +120,12 @@ def deflated_sharpe(r, n_trials: int, trial_sharpes=None,
     elif trial_sharpes is not None and len(np.atleast_1d(trial_sharpes)) >= 2:
         ts = np.asarray(trial_sharpes, dtype=float)
         var, src = float(np.var(ts, ddof=1)), "trials"
-        # Never let a suspiciously tight cluster of trials shrink the bar
-        # below pure sampling noise.
-        var = max(var, 1.0 / max(n - 1, 1))
+        if floor_variance:
+            # Don't let a tight cluster of trials shrink the bar below pure
+            # sampling noise. (The gate uses this only together with the
+            # effective trial count, and takes the stricter of that and the
+            # paper's raw-count benchmark.)
+            var = max(var, 1.0 / max(n - 1, 1))
     else:
         var, src = 1.0 / max(n - 1, 1), "sampling"
     sr0 = expected_max_sharpe(n_trials, var)
@@ -135,7 +138,10 @@ def deflated_sharpe(r, n_trials: int, trial_sharpes=None,
 
 def min_track_record_length(r, sr_benchmark: float = 0.0, confidence: float = 0.95) -> float:
     """Minimum number of observations for the observed Sharpe to beat
-    ``sr_benchmark`` with the given confidence. Infinite if it doesn't beat it."""
+    ``sr_benchmark`` with the given confidence. Infinite if it doesn't beat it.
+
+    ``sr_benchmark`` is a *per-period* (daily) Sharpe, not annualised: divide
+    an annual figure by sqrt(252) first."""
     sr = sharpe_per_period(r)
     skew, kurt, _ = moments(r)
     if sr <= sr_benchmark:

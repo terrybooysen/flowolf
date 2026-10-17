@@ -45,9 +45,9 @@ should be compared against.
 **Reference:** López de Prado (2016), *Building Diversified Portfolios that
 Outperform Out of Sample*, JPM 42(4).
 
-**Split choice:** `split="bisect"` follows the paper: it cuts the ordered list
-of assets in half at each step. `split="tree"` (the default) cuts at the
-cluster tree's actual branches. With unequal cluster sizes, list halving can
+**Split choice:** `split="bisect"` (the default) follows the paper: it cuts the
+ordered list of assets in half at each step. `split="tree"` is our variant, not
+the paper's method: it cuts at the cluster tree's actual branches. With unequal cluster sizes, list halving can
 cut through a cluster. On an 8-asset plus 2-asset two-cluster test, it put
 about 70-80% of the capital in the big cluster, while tree splitting gave
 roughly 50/50.

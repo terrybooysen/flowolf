@@ -64,15 +64,18 @@ class TrialRegistry:
             self._load()
 
     def add(self, family: str, params: dict, returns: pd.Series,
-            turnover: pd.Series | None = None) -> Trial:
+            turnover: pd.Series | None = None, trades: int | None = None) -> Trial:
         key = json.dumps({"family": family, "params": params}, sort_keys=True, default=str)
         tid = hashlib.sha1(f"{key}|{len(self._trials)}".encode()).hexdigest()[:12]
-        t = Trial(family=family, params=dict(params), metrics=performance(returns, turnover),
+        t = Trial(family=family, params=dict(params), metrics=performance(returns, turnover, trades),
                   returns=returns.astype(float), id=tid)
         self._trials.append(t)
         if self.path:
             self._append(t)
         return t
+
+    def keys(self) -> list[str]:
+        return sorted({t.family for t in self._trials})
 
     def family(self, family: str) -> list[Trial]:
         return [t for t in self._trials if t.family == family]
