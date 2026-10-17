@@ -20,6 +20,33 @@ import pandas as pd
 from ..backtest import performance
 
 
+def effective_trials(trial_returns: pd.DataFrame, duplicate_corr: float = 0.95) -> int:
+    """Number of distinct trials, counting near-duplicates once.
+
+    Variants whose daily returns correlate at ``duplicate_corr`` or more (for
+    example the same signal at a different position size) are one idea, not
+    several. Complete-linkage clustering keeps this conservative: every pair
+    inside a cluster must clear the threshold, so genuinely different
+    variants are never merged. A higher threshold merges less (stricter).
+    """
+    from scipy.cluster.hierarchy import fcluster, linkage
+    from scipy.spatial.distance import squareform
+
+    M = trial_returns.dropna()
+    if M.shape[1] < 2:
+        return int(M.shape[1])
+    std = M.std(ddof=1).values
+    if (std == 0).any():
+        # Flat trials (no position ever) carry no information; count them once.
+        flat = std == 0
+        return effective_trials(M.loc[:, ~flat], duplicate_corr) + (1 if flat.any() else 0)
+    C = np.clip(np.nan_to_num(np.corrcoef(M.values.T)), -1.0, 1.0)
+    D = 1.0 - C
+    np.fill_diagonal(D, 0.0)
+    Z = linkage(squareform(D, checks=False), method="complete")
+    return int(len(set(fcluster(Z, 1.0 - duplicate_corr, criterion="distance"))))
+
+
 @dataclass
 class Trial:
     family: str

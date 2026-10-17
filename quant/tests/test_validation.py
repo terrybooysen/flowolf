@@ -143,3 +143,12 @@ def test_gate_config_can_only_tighten():
         cfg.tightened(min_dsr=0.5)
     with pytest.raises(ValueError):
         cfg.tightened(max_pbo=0.5)
+
+
+def test_effective_trials_counts_scaled_copies_once():
+    from flowolf_quant.validation.trials import effective_trials
+    M = data.random_walk_panel(n=1500, k=6, seed=9)
+    copies = pd.concat([M * s for s in (0.5, 1.0, 2.0)], axis=1, keys=["a", "b", "c"])
+    copies.columns = [f"{a}{b}" for a, b in copies.columns]
+    assert effective_trials(copies) == 6
+    assert effective_trials(M) == 6

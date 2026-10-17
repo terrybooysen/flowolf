@@ -109,7 +109,7 @@ FAMILIES: dict[str, Family] = {
     "tsmom": Family(
         "tsmom", "Time-series momentum with volatility scaling.",
         "Moskowitz, Ooi & Pedersen (2012), J. Financial Economics 104(2)",
-        _tsmom, {"lookback": Param("int", 21, 252), "vol_target": Param("float", 0.05, 0.20)}),
+        _tsmom, {"lookback": Param("int", 21, 252)}, defaults={"vol_target": 0.10, "long_only": False}),
     "xsmom": Family(
         "xsmom", "Cross-sectional momentum: own recent winners, short recent losers.",
         "Jegadeesh & Titman (1993), J. Finance 48(1)",

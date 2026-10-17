@@ -20,6 +20,7 @@ from .. import TRADING_DAYS
 from ..backtest import sharpe
 from .pbo import pbo_cscv
 from .sharpe import deflated_sharpe, sharpe_per_period
+from .trials import effective_trials
 
 
 @dataclass(frozen=True)
@@ -30,8 +31,9 @@ class GateConfig:
     min_years: float = 3.0         # design data, before the holdout
     min_trades: int = 30
     pbo_blocks: int = 16
+    duplicate_corr: float = 0.95   # trials this correlated count as one in the deflated Sharpe
 
-    _HIGHER_IS_STRICTER = ("min_dsr", "min_holdout_sharpe", "min_years", "min_trades")
+    _HIGHER_IS_STRICTER = ("min_dsr", "min_holdout_sharpe", "min_years", "min_trades", "duplicate_corr")
     _LOWER_IS_STRICTER = ("max_pbo",)
 
     def tightened(self, **changes) -> "GateConfig":
@@ -97,15 +99,18 @@ def evaluate(selected_returns: pd.Series, trial_returns: pd.DataFrame | None,
     else:
         checks.append(Check("trades", n_trades, config.min_trades, True, f"{n_trades} trades"))
 
-    n_trials = 1 if trial_returns is None else trial_returns.shape[1]
-    trial_srs = None
+    n_raw = 1 if trial_returns is None else trial_returns.shape[1]
+    n_trials, trial_srs = n_raw, None
     if trial_returns is not None and trial_returns.shape[1] >= 2:
+        n_trials = effective_trials(trial_returns, config.duplicate_corr)
         trial_srs = [sharpe_per_period(trial_returns[c]) for c in trial_returns.columns]
     ds = deflated_sharpe(selected_returns, n_trials=n_trials, trial_sharpes=trial_srs)
+    counted = (f"{n_trials} variant(s)" if n_trials == n_raw else
+               f"{n_trials} distinct variant(s) ({n_raw} tried; near-duplicates counted once)")
     checks.append(Check(
         "deflated Sharpe", round(ds.dsr, 4), config.min_dsr, bool(ds.dsr >= config.min_dsr),
         f"annualised Sharpe {ds.sr_annual:.2f} against {ds.sr0_annual:.2f} expected from the luckiest "
-        f"of {n_trials} variant(s); probability of real skill {ds.dsr:.0%}"))
+        f"of {counted}; probability of real skill {ds.dsr:.0%}"))
 
     if trial_returns is not None and trial_returns.shape[1] >= 2:
         try:

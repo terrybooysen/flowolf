@@ -20,7 +20,7 @@ These are Claude's proposal and wait for Numoro's sign-off. Only a Numoro admin 
 
 ## The checks
 
-**Deflated Sharpe ratio** (Bailey & López de Prado, *Journal of Portfolio Management* 40(5), 2014). Try 50 variants of a rule on pure noise and the best one will still show a decent Sharpe. The deflated Sharpe asks whether the chosen variant beats the Sharpe you'd expect from the luckiest of all the variants you tried, allowing for skew and fat tails. It needs the honest trial count, failures included, which is why every variant goes into the trials registry.
+**Deflated Sharpe ratio** (Bailey & López de Prado, *Journal of Portfolio Management* 40(5), 2014). Try 50 variants of a rule on pure noise and the best one will still show a decent Sharpe. The deflated Sharpe asks whether the chosen variant beats the Sharpe you'd expect from the luckiest of all the variants you tried, allowing for skew and fat tails. It needs the honest trial count, failures included, which is why every variant goes into the trials registry. Variants whose daily returns correlate at 0.95 or more (the same signal at a different position size, say) count as one idea; complete-linkage clustering keeps that conservative, so genuinely different variants are never merged. The threshold can only be raised.
 
 **Probabilistic Sharpe ratio** (Bailey & López de Prado, *Journal of Risk* 15(2), 2012). The probability the true Sharpe is above a benchmark, given the sample length and the shape of the returns. The deflated Sharpe is this measured against the best-of-N benchmark. The same paper gives the minimum track record length: how many days you need before a Sharpe that size means anything.
 

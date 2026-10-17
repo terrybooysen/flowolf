@@ -35,7 +35,8 @@ def test_every_proposal_counts_as_a_trial_across_rounds(tmp_path):
     research(r, "ma_cross", RandomProposer(seed=1), rounds=2, per_round=5, registry=reg)
     rep = research(r, "ma_cross", RandomProposer(seed=2), rounds=1, per_round=5, registry=reg)
     assert rep.n_trials == 15
-    assert any(c.name == "deflated Sharpe" and "15 variant" in c.reason for c in rep.verdict.checks)
+    ds = [c for c in rep.verdict.checks if c.name == "deflated Sharpe"][0]
+    assert "15 variant" in ds.reason or "15 tried" in ds.reason
 
 
 def test_holdout_reuse_is_flagged(tmp_path):
@@ -65,3 +66,11 @@ def test_report_serialises():
     r = data.random_walk(n=3024, seed=5)
     rep = research(r, "trend_sign", GridProposer(4))
     json.dumps(rep.to_dict(), default=str)
+
+
+def test_tsmom_family_passes_planted_edge_and_fails_noise():
+    r = data.planted_trend(n=3024, strength=0.10, lookback=20, seed=4)
+    assert research(r, "tsmom", GridProposer(12)).verdict.status == "Pass"
+    statuses = [research(data.random_walk(n=3024, seed=s), "tsmom", GridProposer(12)).verdict.status
+                for s in range(10)]
+    assert statuses.count("Pass") <= 1
